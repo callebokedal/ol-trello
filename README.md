@@ -4,7 +4,7 @@ Vislaulisering av Trello-inforamtion
 ## Användning
 
 - Man behöver ha ett konto i Trello kopplat till de "boards" man vill visa upp
-- Navigera till https://callebokedal.githubpages.com/ol-trello och följ instruktionerna
+- Navigera till https://callebokedal.github.io/ol-trello och följ instruktionerna
 
 ## Säkerhet
 - Denna applikation behöver åtkomst till din Trello-data för att fungera. Detta är helt enligt Trello's API:er (https://developer.atlassian.com/cloud/trello/guides/rest-api/api-introduction/). 
