@@ -56,6 +56,7 @@
 			</div>
 		</div>
 
+		<small id="updateDateTop" class="text-muted d-flex flex-row-reverse"></small>
 		<div id="orgContainer">
 			<div class="d-flex justify-content-center">
 				<div class="spinner-border m-5 text-success" role="status">
@@ -63,6 +64,7 @@
 				</div>
 			</div>
 		</div>
+		<small id="updateDateBottom" class="text-muted d-flex flex-row-reverse mb-5"></small>
 		
 		<div id="settings">
 			<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
@@ -338,6 +340,10 @@
 			_generateBoardListHTML(boardData.lists)
 			_generateBoardCardsHTML(boardData.cards)
 			//console.log(lists.length)
+
+			let now = new Date()
+			document.getElementById("updateDateTop").innerHTML = "Uppdaterad: " + moment(now).format("YYYY-MM-DD HH:mm")
+			document.getElementById("updateDateBottom").innerHTML = "Uppdaterad: " + moment(now).format("YYYY-MM-DD HH:mm")
 		}
 		let _generateBoardListHTML = (lists) => {
 			console.log("_generateBoardListHTML: " + lists.length)
@@ -361,13 +367,14 @@
 			//console.log(lists)
 			//lists.forEach((list, idx) => {
 				//let cards = boardData.cards // list.extCards
-				let html = '' 
+				let html = ''
+				let lastListId = ""
 				cards.forEach((card, idx) => {
 
 					html = '<div class="card">\
 						<ul class="list-group list-group-flush">'
 
-					if(idx == 0 && (card.idBoard == sfkOrgBoardId)) {
+					if(lastListId != card.idList && (card.idBoard == sfkOrgBoardId)) {
 						// Assume first card is for objective
 						html += '<li class="list-group-item p-2 list-group-item-primary">'
 					} else {
@@ -388,6 +395,7 @@
 						<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + safe(moment(card.dateLastActivity).format('YYYY-MM-DD HH:mm')) + '</p>'
 						//<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + moment(card.dateLastActivity).fromNow() + '</p>'
 
+					lastListId = card.idList
 					document.getElementById("list" + card.idList).insertAdjacentHTML('beforeend', html);
 				});
 				//document.getElementById("list" + list.id).outerHTML = html
