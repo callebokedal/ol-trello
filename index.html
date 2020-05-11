@@ -27,7 +27,8 @@
 		<nav class="navbar sticky-top navbar-light bg-light">
 			<img class="mr-2 d-inline-block align-top" src="lib/img/sjovalla_fk_logo_48x48.png" width=48 height=48>
 			<h1 class="font-weight-bold" style="color: #3f9049;font-family: Verdana;font-size: 1.6em;">Sjövalla FK Orientering</h1>
-			<button type="button" class="btn btn-sm btn-primary align-self-center ml-auto d-print-none" data-toggle="modal" style="height: 2.5em;" data-target="#settingsModal">Inställningar</button>
+			<a name="top" onclick="window.scrollTo(0, 0);" type="button" class="btn btn-sm btn-link align-self-center ml-auto mr-2 d-print-none" style="height: 2.5em;">Till toppen</a>
+			<button type="button" class="btn btn-sm btn-primary align-self-center d-print-none" data-toggle="modal" style="height: 2.5em;" data-target="#settingsModal">Inställningar</button>
 		</nav>
 
 		<!--<div>
@@ -118,6 +119,7 @@
 			lists: [],
 			cards: [],
 			labels: [],
+			labelNames: [],
 			checklists: []
 		}
 
