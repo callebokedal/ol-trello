@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>Organisationsöversikt</title>
+	<link href="lib/css/bootstrap_4.4.1_css_bootstrap.min.css" rel="stylesheet">
+	<link rel="icon" href="lib/img/favicon.ico">
+	<link rel="apple-touch-icon" href="lib/img/favicon.ico">
+	<script
+	src="https://code.jquery.com/jquery-3.3.1.min.js"
+	integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+	crossorigin="anonymous"></script>
+	<style>
+		.updatedate {
+			font-size: 0.6em;
+		}
+	</style>
+</head>
+<body>
+
+
+	<!-- Use Bootstrap css-template -->
+	<!-- Bootstrap "Card" used to visiualize Trello's "Lists". So Bootstrap "Card" != Trello "Card" -->
+	<div class="container">
+		<div>
+			<div class="mt-2 mb-2 d-flex">
+				<img class="mr-2" src="lib/img/sjovalla_fk_logo_48x48.png" width=48 height=48>
+				<h1 class="font-weight-bold" style="color: #3f9049;font-family: Verdana;">Sjövalla FK Orientering</h1>
+				<button type="button" class="btn btn-sm btn-primary ml-auto d-print-none" data-toggle="modal" data-target="#settingsModal">Inställningar</button>
+			</div>
+		</div>
+		<div id="orgContainer"></div>
+		
+		<div id="settings">
+			<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="settingsModalLabel">Inställningar</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<form>
+								<div class="form-group">
+									<p>Förutsättning:</p>
+									<ul>
+										<li>Se till att vara inloggad på Trello (med denna webbläsare)</li>
+										<li>Se till att <span class="font-weight-bold">https://callebokedal.github.io</span> finns med i dina Trello-inställningar (<a href='https://trello.com/app-key' target="_tab">https://trello.com/app-key</a>)</li>
+									</ul>
+									<img src="lib/img/settings_instructions.png" class="img-fluid">
+								</div>
+								<div class="form-group">
+									<label for="apiKey">Trello API-nyckel</label>
+									<input type="text" class="form-control" id="apiKey">
+									<small id="emailHelp" class="form-text text-muted">Hämta API-nyckel från <a href='https://trello.com/app-key' target="_tab">https://trello.com/app-key</a></small>
+								</div>
+							</form>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-dismiss="modal">Spara</button>
+							<!--<button type="button" class="btn btn-primary">Save changes</button>-->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<script src="lib/js/bootstrap.4.4.1.min.js"></script>
+	<script src="lib/js/purify.min.js"></script>
+	<script src="lib/js/marked.js"></script>
+	<script src="lib/js/moment.js"></script>
+	<script src="lib/js/locale/sv.js" charset="UTF-8"></script>
+	<script>
+		moment.locale('sv');
+
+		const sfkOrgBoardId = "5eaf17fb64abb829a6679d1c";
+		const sfk2021BoardId = "5eafefb4f2bacf11d616cef6";
+
+		let safe = DOMPurify.sanitize
+
+		// Variables
+		let boardData = {
+			lists: [],
+			cards: [],
+			checklists: []
+		}
+
+		// Add card to board list with ocrresponding idList
+		let populateBoardListData = (card, idList) => {
+			boardData.lists.forEach((list) => {
+				if(list.id == idList) {
+					list.extCards.push(card)
+				}
+			})
+		}
+
+		let authenticationSuccess = function() {
+			console.log('Successful authentication');
+			state.reload(state);
+		};
+		let authenticationFailure = function() {
+	 		console.log('Failed to authenticate');
+		};
+		let opts = {
+			type: 'popup',
+			name: "Sjövalla FK",
+			interactive: true,
+			persist: true,
+			scope: { read: true, write: false, account: false },
+			expiration: "1day",
+			success: authenticationSuccess,
+			error: authenticationFailure
+		}
+
+		// Trello token in local storage "trello_token"
+		let getToken = () => {
+			return localStorage.getItem("trello_token")
+		}
+		let deleteToken = () => {
+			localStorage.removeItem("trello_token")
+		}
+		let getAPIKey = () => {
+			return localStorage.getItem("trello_api_key")
+		}
+		let saveAPIKey = (key) => {
+			localStorage.setItem("trello_api_key", key)
+		}
+
+		let getRequest = (url) => {
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", url);
+			xhr.send(null);
+			
+			xhr.addEventListener("loadend", function() {
+				if (xhr.status === 401) {
+					console.log("Unauthorized")
+				} else if (xhr.status === 200) {
+					var json = JSON.parse(xhr.response);
+					//return json
+				}
+			});
+		}
+
+		// https://api.trello.com/1/members/me/boards?fields=name,url&key={apiKey}&token={apiToken}
+		let getBoards = () => {
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "https://api.trello.com/1/members/me/boards?fields=name,url&key=" + getAPIKey() + "&token=" + getToken());
+			xhr.send(null);
+
+			xhr.addEventListener("loadend", function() {
+				if (xhr.status === 401) {
+					console.log("Unauthorized")
+				} else if (xhr.status === 200) {
+					var json = JSON.parse(xhr.response);
+					console.log(json)
+				}
+			});
+		}
+
+		// GET /1/boards/{id}
+		/*let getBoard = (id) => {
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "https://api.trello.com/1/boards/" + id + "?key=" + getAPIKey() + "&token=" + getToken());
+			xhr.send(null);
+
+			xhr.addEventListener("loadend", function() {
+
+				if (xhr.status === 401) {
+					console.log("Unauthorized")
+				} else if (xhr.status === 200) {
+					///console.log(xhr)
+					//console.log(xhr.response)
+					//let json = JSON.parse(xhr.response);
+					//console.log(json)
+				}
+			});
+		}*/
+
+		// Get Board and card infor for each board. Also generates HTML on the page for this data
+		// /1/boards/{id}/lists
+		let getBoardLists = (boardId) => {
+
+			var xhr = new XMLHttpRequest();
+			xhr.addEventListener("loadend", function() {
+				if (xhr.status === 401) {
+					console.log("Unauthorized")
+				} else if (xhr.status === 200) {
+					let json = JSON.parse(xhr.response);
+
+					// Populate boardData with info
+					json.forEach((list, idx) => {
+						list.extCards = [] // Add additional data
+						boardData.lists.push(list)
+					});
+
+					getCheckLists(boardId)
+					getCards(boardId)
+				}
+			});
+
+			xhr.open("GET", "https://api.trello.com/1/boards/" + boardId + "/lists?key=" + getAPIKey() + "&token=" + getToken());
+			xhr.send(null);
+		}
+
+		// GET /1/boards/{id}/checklists
+		let getCheckLists = (boardId) => {
+
+			var xhr = new XMLHttpRequest();
+			xhr.addEventListener("loadend", function() {
+				if (xhr.status === 401) {
+					console.log("Unauthorized")
+				} else if (xhr.status === 200) {
+					let json = JSON.parse(xhr.response);
+
+					json.forEach((checklist, idx) => {
+						// Populate boardData with info
+						// Loop boardData -> find list with card.id == card.idList 
+						boardData.checklists.push(checklist)
+						//populateBoardChecklistData(checklist)
+					});
+				}
+			});
+
+			xhr.open("GET", "https://api.trello.com/1/boards/" + boardId + "/checklists?key=" + getAPIKey() + "&token=" + getToken());
+			xhr.send(null);	
+		}
+
+		// GET /1/boards/{id}/cards
+		let getCards = (boardId) => {
+
+			var xhr = new XMLHttpRequest();
+			xhr.addEventListener("loadend", function() {
+				if (xhr.status === 401) {
+					console.log("Unauthorized")
+				} else if (xhr.status === 200) {
+					let json = JSON.parse(xhr.response);
+
+					json.forEach((card, idx) => {
+						// Populate boardData with info
+						// Loop boardData -> find list with card.id == card.idList 
+						populateBoardListData(card, card.idList) // TODO: Use boardData.cards instead, see row below
+						boardData.cards.push(card)
+						//console.log(card)
+					});
+					_generateBoardOverviewHTML()
+				}
+			});
+
+			xhr.open("GET", "https://api.trello.com/1/boards/" + boardId + "/cards?key=" + getAPIKey() + "&token=" + getToken());
+			xhr.send(null);	
+		}
+		let _generateBoardOverviewHTML = () => {
+			let lists = boardData.lists
+			_generateBoardListHTML(lists)
+			_generateBoardCardsHTML(lists)
+		}
+		let _generateBoardListHTML = (lists) => {
+
+			let html = ""
+			lists.forEach((list, idx) => {
+				html += '<div class="card mb-3 bg-light shadow-sm">\
+					<div class="card-header text-white" style="background-color: #3f9049;">\
+						' + safe(list.name) + '\
+					</div>\
+					<div class="card-body p-2">\
+						<div id="list' + list.id + '">\
+						</div>\
+					</div>\
+				</div>'
+			});
+			document.getElementById("orgContainer").innerHTML = html
+		}
+
+		const vakantIcon = '<svg class="bi bi-exclamation-triangle-fill mr-2 text-warning" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
+				<path fill-rule="evenodd" d="M8.982 1.566a1.13 1.13 0 00-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5a.905.905 0 00-.9.995l.35 3.507a.552.552 0 001.1 0l.35-3.507A.905.905 0 008 5zm.002 6a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/>\
+			</svg>'
+		const descriptionIcon = '<svg class="bi bi-card-text mr-2" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
+				<path fill-rule="evenodd" d="M14.5 3h-13a.5.5 0 00-.5.5v9a.5.5 0 00.5.5h13a.5.5 0 00.5-.5v-9a.5.5 0 00-.5-.5zm-13-1A1.5 1.5 0 000 3.5v9A1.5 1.5 0 001.5 14h13a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0014.5 2h-13z" clip-rule="evenodd"/>\
+				<path fill-rule="evenodd" d="M3 5.5a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zM3 8a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9A.5.5 0 013 8zm0 2.5a.5.5 0 01.5-.5h6a.5.5 0 010 1h-6a.5.5 0 01-.5-.5z" clip-rule="evenodd"/>\
+			</svg>'
+
+		const checkListIconOld = '<svg class="bi bi-check-box mr-2" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
+					<path fill-rule="evenodd" d="M15.354 2.646a.5.5 0 010 .708l-7 7a.5.5 0 01-.708 0l-3-3a.5.5 0 11.708-.708L8 9.293l6.646-6.647a.5.5 0 01.708 0z" clip-rule="evenodd"/>\
+					<path fill-rule="evenodd" d="M1.5 13A1.5 1.5 0 003 14.5h10a1.5 1.5 0 001.5-1.5V8a.5.5 0 00-1 0v5a.5.5 0 01-.5.5H3a.5.5 0 01-.5-.5V3a.5.5 0 01.5-.5h8a.5.5 0 000-1H3A1.5 1.5 0 001.5 3v10z" clip-rule="evenodd"/>\
+			</svg>'
+		const checkListIcon = '<svg class="bi bi-list-task mr-2" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
+				<path fill-rule="evenodd" d="M2 2.5a.5.5 0 00-.5.5v1a.5.5 0 00.5.5h1a.5.5 0 00.5-.5V3a.5.5 0 00-.5-.5H2zM3 3H2v1h1V3z" clip-rule="evenodd"/>\
+				<path d="M5 3.5a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zM5.5 7a.5.5 0 000 1h9a.5.5 0 000-1h-9zm0 4a.5.5 0 000 1h9a.5.5 0 000-1h-9z"/>\
+				<path fill-rule="evenodd" d="M1.5 7a.5.5 0 01.5-.5h1a.5.5 0 01.5.5v1a.5.5 0 01-.5.5H2a.5.5 0 01-.5-.5V7zM2 7h1v1H2V7zm0 3.5a.5.5 0 00-.5.5v1a.5.5 0 00.5.5h1a.5.5 0 00.5-.5v-1a.5.5 0 00-.5-.5H2zm1 .5H2v1h1v-1z" clip-rule="evenodd"/>\
+			</svg>'
+		const checkItemIcon = '<svg class="bi bi-stop mr-1 mb-1" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
+				<path fill-rule="evenodd" d="M3.5 5A1.5 1.5 0 015 3.5h6A1.5 1.5 0 0112.5 5v6a1.5 1.5 0 01-1.5 1.5H5A1.5 1.5 0 013.5 11V5zM5 4.5a.5.5 0 00-.5.5v6a.5.5 0 00.5.5h6a.5.5 0 00.5-.5V5a.5.5 0 00-.5-.5H5z" clip-rule="evenodd"/>\
+			</svg>'
+		const checkIcon = '<svg class="bi bi-check mr-2 text-success" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
+				<path fill-rule="evenodd" d="M13.854 3.646a.5.5 0 010 .708l-7 7a.5.5 0 01-.708 0l-3.5-3.5a.5.5 0 11.708-.708L6.5 10.293l6.646-6.647a.5.5 0 01.708 0z" clip-rule="evenodd"/>\
+			</svg>'
+		const noCheckIcon = '<svg class="bi bi-x mr-2 text-danger" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
+				<path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 010 .708l-7 7a.5.5 0 01-.708-.708l7-7a.5.5 0 01.708 0z" clip-rule="evenodd"/>\
+				<path fill-rule="evenodd" d="M4.146 4.146a.5.5 0 000 .708l7 7a.5.5 0 00.708-.708l-7-7a.5.5 0 00-.708 0z" clip-rule="evenodd"/>\
+			</svg>'
+
+		let _generateBoardCardsHTML = (lists) => {
+			// Ref: https://getbootstrap.com/docs/4.4/components/card/
+			lists.forEach((list, idx) => {
+				let cards = list.extCards
+				let html = '' 
+				cards.forEach((card, idx) => {
+
+					html += '<div class="card">\
+						<ul class="list-group list-group-flush">'
+
+					if(idx == 0 && (card.idBoard == sfkOrgBoardId)) {
+						// Assume first card is for objective
+						html += '<li class="list-group-item p-2 list-group-item-primary">'
+					} else {
+						html += '<li class="list-group-item p-2">'
+					}
+					html += (card.name.toLowerCase().includes("vakant") ? vakantIcon : "")
+					html += safe(card.name.replace("beskrivs i detta kort","")) 
+					if(card.desc) {
+						html += '<div class="p-1" style="background-color: #eee;"><h6>' + descriptionIcon + 'Beskrivning</h6>' + safe(marked(card.desc)) + '</div>'
+					}
+					if(card.idChecklists.length > 0) {
+						card.idChecklists.forEach((id) => {
+							html += '<p>' + getHTMLForChecklist(id) + '</p>'
+						});
+					}
+					html += '</li></ul>\
+						</div>\
+						<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + safe(moment(card.dateLastActivity).format('YYYY-MM-DD HH:mm')) + '</p>'
+						//<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + moment(card.dateLastActivity).fromNow() + '</p>'
+				});
+				document.getElementById("list" + list.id).outerHTML = html
+			});
+		}
+
+		let getHTMLForChecklist = (id) => {
+			let item = boardData.checklists.find(el => el.id == id)
+			if(item === undefined) {
+				return ""
+			}
+			let html = ""
+			html += '<h6>' + checkListIcon + safe(item.name) + '</h6>'
+			item.checkItems.forEach((el, idx) => {
+				//html += '<p class="m-0 pl-4">' + (el.state == "incomplete" ? noCheckIcon : checkIcon) + safe(el.name) + '</p>'
+				html += '<p class="m-0 pl-4">' + (el.state == "incomplete" ? checkItemIcon : checkIcon) + safe(el.name) + '</p>'
+			})
+			return html
+		}
+
+		const STATES = {
+			org: "org",
+			year2020: "year2020",
+			year2021: "year2021"
+		}
+
+		let state = {
+			view: "org",
+			reload: (state) => {
+				reloadPage(state)
+			}
+		}
+		let reloadPage = (state) => {
+			if(state.view == "org") {
+				getBoardLists(sfkOrgBoardId)
+			} else if(state.view == STATES.year2021) {
+				getBoardLists(sfk2021BoardId)
+			} else {
+				//getBoardLists(sfk2021BoardId)
+				console.log("Unsupported view")
+			}
+		}
+
+		// Load js and authenticate
+		let initTrelloAndAuthenticate = () => {
+
+			let trelloClient = document.createElement('script');
+			trelloClient.onload = function () {
+				// Run when loaded
+				window.Trello.authorize(opts)
+			    //state.reload(state)
+			};
+			trelloClient.src = "https://trello.com/1/client.js?key=" + getAPIKey();
+			document.head.appendChild(trelloClient);			
+		}
+
+		$( document ).ready(function() {
+			console.log("ready!");
+
+			$('#settingsModal').on('shown.bs.modal', function (e) {
+				//console.log("shown")
+				document.getElementById("apiKey").value = getAPIKey()
+			})
+			$('#settingsModal').on('hidden.bs.modal', function (e) {
+				console.log("save settings")
+				saveAPIKey(document.getElementById("apiKey").value)
+
+				// <script src="https://trello.com/1/client.js">
+				initTrelloAndAuthenticate()
+				
+			})
+
+			let apikey = getAPIKey()
+			//console.log(apikey)
+
+			if(apikey == null) {
+				$('#settingsModal').modal('show')
+			} else {
+				// Assume all ok
+				initTrelloAndAuthenticate()
+				state.reload(state)
+			}
+
+
+			//getBoard(sfkOrgBoardId);
+			//getBoard(sfk2021BoardId);
+
+			//getBoardLists(sfk2021BoardId)
+		});
+
+	</script>
+</body>
+</html>
