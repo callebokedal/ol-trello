@@ -118,6 +118,7 @@
 
 		// Variables
 		let boardData = {
+			board: {},
 			lists: [],
 			cards: [],
 			labels: [],
@@ -205,23 +206,30 @@
 		}
 
 		// GET /1/boards/{id}
-		/*let getBoard = (id) => {
-			var xhr = new XMLHttpRequest();
-			xhr.open("GET", "https://api.trello.com/1/boards/" + id + "?key=" + getAPIKey() + "&token=" + getToken());
-			xhr.send(null);
+		let _getBoard = (boardId) => {
+			return new Promise((resolve, reject) => {
+				console.log("_getBoard: " + boardId)
 
-			xhr.addEventListener("loadend", function() {
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "https://api.trello.com/1/boards/" + boardId + "?key=" + getAPIKey() + "&token=" + getToken());
+				xhr.send(null);
 
-				if (xhr.status === 401) {
-					console.log("Unauthorized")
-				} else if (xhr.status === 200) {
-					///console.log(xhr)
-					//console.log(xhr.response)
-					//let json = JSON.parse(xhr.response);
-					//console.log(json)
-				}
+				xhr.addEventListener("loadend", function() {
+
+					if (xhr.status === 401) {
+						console.log("Unauthorized")
+						reject()
+					} else if (xhr.status === 200) {
+						///console.log(xhr)
+						//console.log(xhr.response)
+						let json = JSON.parse(xhr.response);
+						//console.log(json)
+						boardData.board = json
+						resolve()
+					}
+				});
 			});
-		}*/
+		}
 
 		// Get Board and card infor for each board. Also generates HTML on the page for this data
 		// /1/boards/{id}/lists
@@ -344,6 +352,9 @@
 			let now = new Date()
 			document.getElementById("updateDateTop").innerHTML = "Uppdaterad: " + moment(now).format("YYYY-MM-DD HH:mm")
 			document.getElementById("updateDateBottom").innerHTML = "Uppdaterad: " + moment(now).format("YYYY-MM-DD HH:mm")
+
+			// https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML
+			document.getElementById("orgContainer").insertAdjacentHTML('beforebegin','<h3 style="color: #3f9049;font-family: Verdana;font-size: 1.6em;">' + safe(boardData.board.name) + '</h3>');
 		}
 		let _generateBoardListHTML = (lists) => {
 			console.log("_generateBoardListHTML: " + lists.length)
@@ -491,6 +502,7 @@
 		let _loadAndRenderPage = (boardId) => {
 			// Load data from Trello
 			Promise.all([
+				_getBoard(boardId),
 				_getLists(boardId),
 				_getCards(boardId),
 				_getCheckLists(boardId),
