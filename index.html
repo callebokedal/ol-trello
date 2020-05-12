@@ -571,23 +571,6 @@
 			}
 		}
 
-		// Load/Reload page
-		//let _loadBoard = (boardId) => {
-			//_loadAndRenderBoard(boardId)
-			/*if(state.view == STATES.ORG) {
-				_loadAndRenderPage(sfkOrgBoardId)
-			} else if(state.view == STATES.YEAR2021) {
-				_loadAndRenderPage(sfk2021BoardId)
-			} else {
-				//getLists(sfk2021BoardId)
-				console.log("Unsupported view")
-			}*/
-		//}
-
-		//const promise3 = new Promise((resolve, reject) => {
-		//	setTimeout(resolve, 2000, 'foo');
-		//});
-
 		// Display Start view
 		let _loadAndRenderStart = () => {
 			initAllBoards()
@@ -598,7 +581,7 @@
 			}).catch(function(msg) {
 				console.log('Failed to load data from Trello:');
 				console.log(msg)
-				document.getElementById("orgContainer").innerHTML = '<div class="alert alert-danger" role="alert">\
+				document.getElementById("startContainer").innerHTML = '<div class="alert alert-danger" role="alert">\
 					 Tillåtelse att läsa data från Trello saknas eller har löpt ut. Förnya genom att klicka på följande <a href="#" onclick="renewAccess();return false;">länk</a>.\
 					</div>'
 			})
@@ -614,7 +597,7 @@
 			}).catch(function(msg) {
 				console.log('Failed to load data from Trello:');
 				console.log(msg)
-				document.getElementById("orgContainer").innerHTML = '<div class="alert alert-danger" role="alert">\
+				document.getElementById("overviewContainer").innerHTML = '<div class="alert alert-danger" role="alert">\
 					 Tillåtelse att läsa data från Trello saknas eller har löpt ut. Förnya genom att klicka på följande <a href="#" onclick="renewAccess();return false;">länk</a>.\
 					</div>'
 			})
@@ -636,7 +619,7 @@
 				//if(msg === "Unauthorized") {
 					console.log('Failed to load data from Trello:');
 					console.log(msg)
-					document.getElementById("orgContainer").innerHTML = '<div class="alert alert-danger" role="alert">\
+					document.getElementById("boardContainer").innerHTML = '<div class="alert alert-danger" role="alert">\
 						 Tillåtelse att läsa data från Trello saknas eller har löpt ut. Förnya genom att klicka på följande <a href="#" onclick="renewAccess();return false;">länk</a>.\
 						</div>'
 				//} else {
