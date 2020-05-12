@@ -118,11 +118,10 @@
 
 		// Variables
 		let boardData = {
-			board: {},
+			board: {}, // labelNames in this object
 			lists: [],
 			cards: [],
 			labels: [],
-			labelNames: [],
 			checklists: []
 		}
 
@@ -135,14 +134,13 @@
 			})
 		}
 
-		let authenticationSuccess = function() {
+		let authenticationSuccess = () => {
 			console.log('Successful authentication');
 			state.loadPage(state);
 		};
-		let authenticationFailure = function() {
+		let authenticationFailure = () => {
 	 		console.log('Failed to authenticate');
 		};
-
 
 		// https://developer.atlassian.com/cloud/trello/guides/rest-api/api-introduction/
 		// https://developer.atlassian.com/cloud/trello/guides/client-js/client-js-reference/
@@ -174,6 +172,7 @@
 		// Renew access to Trello
 		let renewAccess = () => {
 			console.log("renewAccess")
+			deleteToken()
 			let result = window.Trello.authorize(renewOpts);
 			console.log(result)
 		}
@@ -194,13 +193,6 @@
 
 
 		let test = () => {
-			
-//			new Promise(getRequest('https://api.trello.com/1/members/me?key=' + getAPIKey() + '&token=' + getToken()))
-//				.then((response) => {
-//					console.log("test");
-//					console.log(response);
-//				});
-
 			let r = 
 				Promise.all([getRequest('https://api.trello.com/1/members/me?key=' + getAPIKey() + '&token=' + getToken())
 					])
@@ -609,23 +601,17 @@
 				console.log("save settings")
 				saveAPIKey(document.getElementById("apiKey").value)
 
-				// <script src="https://trello.com/1/client.js">
 				initTrelloAndAuthenticate()
 			})
 
-			let apikey = getAPIKey()
+			let apiKey = getAPIKey()
 
-			if(apikey == null) {
+			if(apiKey == null) {
 				$('#settingsModal').modal('show')
 			} else {
 				// Assume all ok
 				initTrelloAndAuthenticate()
 			}
-
-			//getBoard(sfkOrgBoardId);
-			//getBoard(sfk2021BoardId);
-
-			//_getLists(sfk2021BoardId)
 		});
 
 	</script>
