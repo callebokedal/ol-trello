@@ -412,11 +412,14 @@
 				let labelMarkers = ""
 				card.idLabels.forEach((labelId, idx) => {
 					let l = getLabelById(labelId)
-					console.log("label: " + l.name)
-					console.log(l)
-					labelMarkers += '<span class="ml-2 badge badge-pill ' + l.color + "-label" + '">' + (l.name ? l.name:"&nbsp;") + '</span>'
+					//console.log("label: " + l.name)
+					//console.log(l)
+					let name = (l.name ? l.name:"&nbsp;")
+					name = name.includes("Representant i") ? boardMemberIcon + name  : name
+					// 
+					labelMarkers += '<span class="ml-2 badge badge-pill ' + l.color + "-label" + '">' + name + '</span>'
 				});	
-				console.log(labelMarkers)
+				//console.log(labelMarkers)
 
 				html = '<div class="card" id="' + card.id + '">\
 					<ul class="list-group list-group-flush">'
@@ -490,6 +493,12 @@
 		const noCheckIcon = '<svg class="bi bi-x mr-2 text-danger" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
 				<path fill-rule="evenodd" d="M11.854 4.146a.5.5 0 010 .708l-7 7a.5.5 0 01-.708-.708l7-7a.5.5 0 01.708 0z" clip-rule="evenodd"/>\
 				<path fill-rule="evenodd" d="M4.146 4.146a.5.5 0 000 .708l7 7a.5.5 0 00.708-.708l-7-7a.5.5 0 00-.708 0z" clip-rule="evenodd"/>\
+			</svg>'
+
+		const boardMemberIcon = '<svg class="bi bi-people-circle mr-1" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
+				<path d="M13.468 12.37C12.758 11.226 11.195 10 8 10s-4.757 1.225-5.468 2.37A6.987 6.987 0 008 15a6.987 6.987 0 005.468-2.63z"/>\
+				<path fill-rule="evenodd" d="M8 9a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>\
+				<path fill-rule="evenodd" d="M8 1a7 7 0 100 14A7 7 0 008 1zM0 8a8 8 0 1116 0A8 8 0 010 8z" clip-rule="evenodd"/>\
 			</svg>'
 
 		let getHTMLForChecklist = (id) => {
@@ -574,8 +583,23 @@
 			}
 		}
 
+		// Trello token in local storage "trello_token"
+		let getToken = () => {
+			return localStorage.getItem("trello_token")
+		}
+		let deleteToken = () => {
+			localStorage.removeItem("trello_token")
+		}
+		let getAPIKey = () => {
+			return localStorage.getItem("trello_api_key")
+		}
+		let saveAPIKey = (key) => {
+			localStorage.setItem("trello_api_key", key)
+		}
+
 		let renewHTML = '<div class="alert alert-danger" role="alert">\
 					 Tillåtelse att läsa data från Trello saknas eller har löpt ut. Förnya genom att klicka på följande <a href="#" onclick="renewAccess();return false;">länk</a>. Mer info på <a href="https://trello.com/app-key" target="_tab">https://trello.com/app-key<a>\
+					 <p>OBS! Jobbar på att få detta att fungera enkelt... Ett <a href="https://api.trello.com/1/members/me?key=' + getAPIKey() + '&token=' + getToken() + '">test</a> för detta.</p>\
 					</div>'
 
 		// Display Start view
@@ -666,20 +690,6 @@
 			deleteToken()
 			let result = window.Trello.authorize(renewOpts);
 			console.log(result)
-		}
-
-		// Trello token in local storage "trello_token"
-		let getToken = () => {
-			return localStorage.getItem("trello_token")
-		}
-		let deleteToken = () => {
-			localStorage.removeItem("trello_token")
-		}
-		let getAPIKey = () => {
-			return localStorage.getItem("trello_api_key")
-		}
-		let saveAPIKey = (key) => {
-			localStorage.setItem("trello_api_key", key)
 		}
 
 
