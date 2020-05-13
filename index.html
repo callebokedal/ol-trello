@@ -15,29 +15,32 @@
 		.updatedate {
 			font-size: 0.6em;
 		}
+		.green-label { background-color: #3f9049; color: #fff;}
+		.yellow-label { background-color: #f2d600; color: #fff;}
+		.orange-label { background-color: #cd8313; color: #fff;}
+		.red-label { background-color: #eb5a46; color: #fff;}
+		.purple-label { background-color: #c377e0; color: #fff;}
+		.blue-label { background-color: #0079bf; color: #fff;}
+		.sky-label { background-color: #0098b7; color: #fff;}
+		/*.green-label { border-left:.5rem solid #61bd4f; }
+		.yellow-label { border-left:.5rem solid #f2d600; }
+		.orange-label { border-left:.5rem solid #cd8313; }
+		.red-label { border-left:.5rem solid #eb5a46; }
+		.purple-label { border-left:.5rem solid #c377e0; }
+		.blue-label { border-left:.5rem solid #0079bf; }
+		.sky-label { border-left:.5rem solid #0098b7; }*/
 	</style>
 </head>
 <body>
 
-
 	<!-- Use Bootstrap css-template -->
-	<!-- Bootstrap "Card" used to visiualize Trello's "Lists". So Bootstrap "Card" != Trello "Card" -->
 	<div class="container">
-		<!--<nav class="navbar sticky-top navbar-light bg-light">-->
 		<nav class="navbar sticky-top navbar-light bg-light">
 			<img class="mr-2 d-inline-block align-top" src="lib/img/sjovalla_fk_logo_48x48.png" width=48 height=48>
 			<h1 class="font-weight-bold" style="color: #3f9049;font-family: Verdana;font-size: 1.6em;">Sjövalla FK Orientering</h1>
 			<a name="top" onclick="window.scrollTo(0, 0);" class="btn btn-sm btn-link align-self-center ml-auto mr-2 d-print-none" style="height: 2.5em;">Till toppen</a>
 			<button type="button" class="btn btn-sm btn-primary align-self-center d-print-none" data-toggle="modal" style="height: 2.5em;" data-target="#settingsModal">Inställningar</button>
 		</nav>
-
-		<!--<div>
-			<div class="mt-2 mb-2 d-flex">
-				<img class="mr-2" src="lib/img/sjovalla_fk_logo_48x48.png" width=48 height=48>
-				<h1 class="font-weight-bold" style="color: #3f9049;font-family: Verdana;">Sjövalla FK Orientering</h1>
-				<button type="button" class="btn btn-sm btn-primary align-self-center ml-auto d-print-none" data-toggle="modal" style="height: 2.5em;" data-target="#settingsModal">Inställningar</button>
-			</div>
-		</div> -->
 
 		<div id="toolbar" class="mt-2 mb-2 d-print-none text-right">
 			<div class="btn-group btn-group-sm" role="group" aria-label="Sidfunktioner">
@@ -231,10 +234,7 @@
 						console.log("Unauthorized")
 						reject(xhr.status + " " + xhr.statusText + ": " + xhr.response);
 					} else if (xhr.status === 200) {
-						///console.log(xhr)
-						//console.log(xhr.response)
 						let json = JSON.parse(xhr.response);
-						//console.log(json)
 						boardData.board = json
 						resolve()
 					}
@@ -256,15 +256,9 @@
 					} else if (xhr.status === 200) {
 						let json = JSON.parse(xhr.response);
 
-						// Populate boardData with info
 						json.forEach((list, idx) => {
-							//list.extCards = [] // Add additional data
 							boardData.lists.push(list)
 						});
-
-						//console.log("lists: " + boardData.lists.length)
-						//_getCheckLists(boardId)
-						//_getCards(boardId)
 						resolve()
 					}
 				});
@@ -289,7 +283,6 @@
 						let json = JSON.parse(xhr.response);
 
 						json.forEach((label, idx) => {
-							// Populate boardData with info
 							boardData.labels.push(label)
 						});
 						resolve();
@@ -344,7 +337,6 @@
 						json.forEach((card, idx) => {
 							boardData.cards.push(card)
 						});
-						//_generateBoardHTML()
 						resolve();
 					}
 				});
@@ -362,7 +354,7 @@
 				html = '<h5 class=" mt-5">Välj tavla att visa</h5>'
 				html += '<div class="list-group">'
 				allBoards.boards.forEach((board, idx) => {
-					html += '<a href="#" class="list-group-item list-group-item-action" onclick="state.viewBoard(\'' + board.id + '\');return false;">' + board.name + '</a>'
+					html += '<a href="#" class="list-group-item list-group-item-action" onclick="state.viewBoard(\'' + board.id + '\');return false;">' + safe(board.name) + '</a>'
 				});	
 				html += '</div>'
 			} else {
@@ -379,7 +371,7 @@
 			document.getElementById("orgContainer").innerHTML = "";
 			_generateBoardListHTML(boardData.lists)
 			_generateBoardCardsHTML(boardData.cards)
-			//console.log(lists.length)
+			//_generateBoardCardLabelsHTML(boardData.cards)
 
 			let now = new Date()
 			document.getElementById("updateDateTop").innerHTML = "Uppdaterad: " + moment(now).format("YYYY-MM-DD HH:mm")
@@ -396,7 +388,7 @@
 			let html = ""
 			lists.forEach((list, idx) => {
 				html += '<div class="card mb-3 bg-light shadow-sm">\
-					<div class="card-header p-2 text-white d-flex" style="background-color: #3f9049;">\
+					<div class="bd-callout bd-callout-warning card-header p-2 text-white d-flex" style="background-color: #3f9049;">\
 						<span class="align-self-center">' + safe(list.name) + '</span>\
 						<button type="button" class="btn btn-sm btn-light ml-auto d-print-none" onclick="listToggle(\'list' + list.id + '\')">Visa/dölj</button>\
 					</div>\
@@ -406,49 +398,60 @@
 			});
 			document.getElementById("orgContainer").innerHTML = html
 		}
+
+		let getLabelById = (labelId) => {
+			return boardData.labels.find(label => label.id == labelId)
+		}
 		let _generateBoardCardsHTML = (cards) => {
 			console.log("_generateBoardCardsHTML: " + cards.length)
 			// Ref: https://getbootstrap.com/docs/4.4/components/card/
-			//console.log(lists)
-			//lists.forEach((list, idx) => {
-				//let cards = boardData.cards // list.extCards
-				let html = ''
-				let lastListId = ""
-				cards.forEach((card, idx) => {
+			let html = ''
+			let lastListId = ""
+			cards.forEach((card, idx) => {
 
-					html = '<div class="card">\
-						<ul class="list-group list-group-flush">'
+				let labelMarkers = ""
+				card.idLabels.forEach((labelId, idx) => {
+					let l = getLabelById(labelId)
+					console.log("label: " + l.name)
+					console.log(l)
+					labelMarkers += '<span class="ml-2 badge badge-pill ' + l.color + "-label" + '">' + (l.name ? l.name:"&nbsp;") + '</span>'
+				});	
+				console.log(labelMarkers)
 
-					if(lastListId != card.idList && (card.idBoard == sfkOrgBoardId)) {
-						// Assume first card is for objective
-						html += '<li class="list-group-item p-2 list-group-item-primary">'
-					} else {
-						html += '<li class="list-group-item p-2">'
-					}
-					html += (card.name.toLowerCase().includes("vakant") ? vakantIcon : "")
-					html += safe(card.name.replace("beskrivs i detta kort","")) 
-					if(card.desc) {
-						html += '<div class="p-1" style="background-color: #eee;"><h6>' + descriptionIcon + 'Beskrivning</h6>' + safe(marked(card.desc)) + '</div>'
-					}
-					if(card.idChecklists.length > 0) {
-						card.idChecklists.forEach((id) => {
-							html += '<p>' + getHTMLForChecklist(id) + '</p>'
-						});
-					}
-					html += '</li></ul>\
-						</div>\
-						<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + safe(moment(card.dateLastActivity).format('YYYY-MM-DD HH:mm')) + '</p>'
-						//<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + moment(card.dateLastActivity).fromNow() + '</p>'
+				html = '<div class="card" id="' + card.id + '">\
+					<ul class="list-group list-group-flush">'
 
-					lastListId = card.idList
-					document.getElementById("list" + card.idList).insertAdjacentHTML('beforeend', html);
-				});
-				//document.getElementById("list" + list.id).outerHTML = html
-				//document.getElementById("list" + list.id).innerHTML = html
+				if(lastListId != card.idList && (card.idBoard == sfkOrgBoardId)) {
+					// Assume first card is for objective
+					html += '<li class="list-group-item p-2 list-group-item-primary">'
+				} else {
+					html += '<li class="list-group-item p-2">'
+				}
+				html += (card.name.toLowerCase().includes("vakant") ? vakantIcon : "")
+				html += safe(card.name.replace("beskrivs i detta kort","")) + labelMarkers
+				if(card.desc) {
+					html += '<div class="p-1" style="background-color: #eee;"><h6>' + descriptionIcon + 'Beskrivning</h6>' + safe(marked(card.desc)) + '</div>'
+				}
+				if(card.idChecklists.length > 0) {
+					card.idChecklists.forEach((id) => {
+						html += '<p>' + getHTMLForChecklist(id) + '</p>'
+					});
+				}
+				html += '</li></ul>\
+					</div>\
+					<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + safe(moment(card.dateLastActivity).format('YYYY-MM-DD HH:mm')) + '</p>'
+					//<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + moment(card.dateLastActivity).fromNow() + '</p>'
 
-			//});
-				
+				lastListId = card.idList
+				document.getElementById("list" + card.idList).insertAdjacentHTML('beforeend', html);
+			});
 		}
+		/*let _generateBoardCardLabelsHTML = (cards) => {
+			let html = ''
+			let lastListId = ""
+			cards.forEach((card, idx) => {
+			}
+		}*/
 
 		// Page functions
 		let listToggle = (id) => {
@@ -571,6 +574,10 @@
 			}
 		}
 
+		let renewHTML = '<div class="alert alert-danger" role="alert">\
+					 Tillåtelse att läsa data från Trello saknas eller har löpt ut. Förnya genom att klicka på följande <a href="#" onclick="renewAccess();return false;">länk</a>. Mer info på <a href="https://trello.com/app-key" target="_tab">https://trello.com/app-key<a>\
+					</div>'
+
 		// Display Start view
 		let _loadAndRenderStart = () => {
 			initAllBoards()
@@ -581,9 +588,7 @@
 			}).catch(function(msg) {
 				console.log('Failed to load data from Trello:');
 				console.log(msg)
-				document.getElementById("startContainer").innerHTML = '<div class="alert alert-danger" role="alert">\
-					 Tillåtelse att läsa data från Trello saknas eller har löpt ut. Förnya genom att klicka på följande <a href="#" onclick="renewAccess();return false;">länk</a>.\
-					</div>'
+				document.getElementById("startContainer").innerHTML = renewHTML
 			})
 		}
 
@@ -597,9 +602,7 @@
 			}).catch(function(msg) {
 				console.log('Failed to load data from Trello:');
 				console.log(msg)
-				document.getElementById("overviewContainer").innerHTML = '<div class="alert alert-danger" role="alert">\
-					 Tillåtelse att läsa data från Trello saknas eller har löpt ut. Förnya genom att klicka på följande <a href="#" onclick="renewAccess();return false;">länk</a>.\
-					</div>'
+				document.getElementById("overviewContainer").innerHTML = renewHTML
 			})
 		}
 
@@ -616,21 +619,14 @@
 			]).then(() => {
 				_generateBoardHTML()
 			}).catch(function(msg) {
-				//if(msg === "Unauthorized") {
-					console.log('Failed to load data from Trello:');
-					console.log(msg)
-					document.getElementById("boardContainer").innerHTML = '<div class="alert alert-danger" role="alert">\
-						 Tillåtelse att läsa data från Trello saknas eller har löpt ut. Förnya genom att klicka på följande <a href="#" onclick="renewAccess();return false;">länk</a>.\
-						</div>'
-				//} else {
-				//	console.log("Unhandled error when fetching data from Trello.");
-				//}
+				console.log('Failed to load data from Trello:');
+				console.log(msg)
+				document.getElementById("boardContainer").innerHTML = renewHTML
 			})
 		}
 
 		let authenticationSuccess = () => {
 			console.log('Successful authentication');
-			//state.loadPage(state);
 			state.loadAndShowState()
 		};
 		let authenticationFailure = () => {
