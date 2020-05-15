@@ -215,7 +215,7 @@
 		// GET /1/boards/{id}
 		let _getBoard = (boardId) => {
 			return new Promise((resolve, reject) => {
-				console.log("_getBoard: " + boardId)
+				//console.log("_getBoard: " + boardId)
 
 				var xhr = new XMLHttpRequest();
 				xhr.open("GET", "https://api.trello.com/1/boards/" + boardId + "?key=" + getAPIKey() + "&token=" + getToken());
@@ -239,7 +239,7 @@
 		// /1/boards/{id}/lists
 		let _getLists = (boardId) => {
 			return new Promise((resolve, reject) => {
-				console.log("_getLists: " + boardId)
+				//console.log("_getLists: " + boardId)
 
 				let xhr = new XMLHttpRequest();
 				xhr.addEventListener("loadend", function() {
@@ -265,7 +265,7 @@
 		let _getLabels = (boardId) => {
 			return new Promise((resolve, reject) => {
 
-				console.log("_getLabels: " + boardId)
+				//console.log("_getLabels: " + boardId)
 
 				var xhr = new XMLHttpRequest();
 				xhr.addEventListener("loadend", function() {
@@ -291,7 +291,7 @@
 		let _getCheckLists = (boardId) => {
 			return new Promise((resolve, reject) => {
 
-				console.log("_getCheckLists: " + boardId)
+				//console.log("_getCheckLists: " + boardId)
 
 				var xhr = new XMLHttpRequest();
 				xhr.addEventListener("loadend", function() {
@@ -317,7 +317,7 @@
 		let _getCards = (boardId) => {
 			return new Promise((resolve, reject) => {
 
-				console.log("_getCards: " + boardId)
+				//console.log("_getCards: " + boardId)
 
 				var xhr = new XMLHttpRequest();
 				xhr.addEventListener("loadend", function() {
@@ -340,7 +340,7 @@
 		}
 
 		let _generateStartHTML = () => {
-			console.log("_generateStartHTML")
+			//console.log("_generateStartHTML")
 			document.getElementById("startContainer").innerHTML = "";
 			let html = ''
 			if(allBoards.boards.length) {
@@ -360,7 +360,7 @@
 		}
 
 		let _generateBoardHTML = () => {
-			console.log("_generateBoardHTML")
+			//console.log("_generateBoardHTML")
 			document.getElementById("orgContainer").innerHTML = "";
 			_generateBoardListHTML(boardData.lists)
 			_generateBoardCardsHTML(boardData.cards)
@@ -376,7 +376,7 @@
 			document.getElementById("orgContainer").insertAdjacentHTML('afterbegin', html);
 		}
 		let _generateBoardListHTML = (lists) => {
-			console.log("_generateBoardListHTML: " + lists.length)
+			//console.log("_generateBoardListHTML: " + lists.length)
 
 			let html = ""
 			lists.forEach((list, idx) => {
@@ -396,7 +396,7 @@
 			return boardData.labels.find(label => label.id == labelId)
 		}
 		let _generateBoardCardsHTML = (cards) => {
-			console.log("_generateBoardCardsHTML: " + cards.length)
+			//console.log("_generateBoardCardsHTML: " + cards.length)
 			// Ref: https://getbootstrap.com/docs/4.4/components/card/
 			let html = ''
 			let lastListId = ""
@@ -414,14 +414,14 @@
 				});	
 				//console.log(labelMarkers)
 
-				html = '<div class="card" id="' + card.id + '">\
+				html = '<div class="card mb-2" id="' + card.id + '">\
 					<ul class="list-group list-group-flush">'
 
 				if(lastListId != card.idList && (card.idBoard == sfkOrgBoardId)) {
 					// Assume first card is for objective
-					html += '<li class="list-group-item p-2 list-group-item-primary">'
+					html += '<li class="list-group-item px-2 p-1 list-group-item-primary">'
 				} else {
-					html += '<li class="list-group-item p-2">'
+					html += '<li class="list-group-item px-2 p-1">'
 				}
 				html += (card.name.toLowerCase().includes("vakant") ? vakantIcon : "")
 				html += safe(card.name.replace("beskrivs i detta kort","")) + labelMarkers
@@ -433,21 +433,15 @@
 						html += '<p>' + getHTMLForChecklist(id) + '</p>'
 					});
 				}
-				html += '</li></ul>\
-					</div>\
-					<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + safe(moment(card.dateLastActivity).format('YYYY-MM-DD HH:mm')) + '</p>'
+				html += '<p class="float-right d-none d-sm-block text-muted updatedate">Uppdaterad ' + safe(moment(card.dateLastActivity).format('YYYY-MM-DD HH:mm')) + '</p></li></ul>\
+					</div>'
+					//<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + safe(moment(card.dateLastActivity).format('YYYY-MM-DD HH:mm')) + '</p>'
 					//<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + moment(card.dateLastActivity).fromNow() + '</p>'
 
 				lastListId = card.idList
 				document.getElementById("list" + card.idList).insertAdjacentHTML('beforeend', html);
 			});
 		}
-		/*let _generateBoardCardLabelsHTML = (cards) => {
-			let html = ''
-			let lastListId = ""
-			cards.forEach((card, idx) => {
-			}
-		}*/
 
 		// Page functions
 		let listToggle = (id) => {
@@ -502,7 +496,6 @@
 			let html = ""
 			html += '<h6>' + checkListIcon + safe(item.name) + '</h6>'
 			item.checkItems.forEach((el, idx) => {
-				//html += '<p class="m-0 pl-4">' + (el.state == "incomplete" ? noCheckIcon : checkIcon) + safe(el.name) + '</p>'
 				html += '<p class="m-0 pl-4">' + (el.state == "incomplete" ? checkItemIcon : checkIcon) + safe(el.name) + '</p>'
 			})
 			return html
@@ -513,11 +506,6 @@
 			VIEWBOARD: "viewboard",
 			VIEWOVERVIEW: "viewoverview"
 		}
-		/*const STATES = {
-			ORG: "org",
-			YEAR2020: "year2020",
-			YEAR2021: "year2021"
-		}*/
 
 		// Default state
 		let state = {
@@ -646,7 +634,7 @@
 
 		let authenticationSuccess = () => {
 			let token = Trello.token();
-			console.log('Successful authentication: ' + token);
+			console.log('Successful authentication: ');
 			setToken(token)
 
 			state.loadAndShowState()
