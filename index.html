@@ -748,7 +748,7 @@
 			// http://localhost:8000/#token=...
 			let url_string = window.location.href; 
     		let url = new URL(url_string);
-    		let token = safe(url.hash).replace("#","")
+    		let token = safe(url.hash).replace("#token=","")
     		debug("token=" + token.substring(0,5))
     		if(token != "") {
     			debug("Authentication via callback")
