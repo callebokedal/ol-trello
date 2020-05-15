@@ -52,6 +52,8 @@
 			</div>
 		</div>
 
+		<textarea id="visualDebug" class="w-100 d-none"></textarea>
+
 		<div id="startContainer"></div>
 
 		<div id="overviewContainer"></div>
@@ -686,6 +688,7 @@
 		let renewAccess = () => {
 			let thisPage = safe(window.location.href)
 			//console.log(thisPage)
+			debug("")
 			let name = (thisPage.includes("localhost") ? "Sjövalla+FK+Orientering+Dev":"Sjövalla+FK+Orientering")
 			window.location.href = "https://trello.com/1/authorize?expiration=30days&name=" + name + "&scope=read&response_type=token&key=" + getAPIKey() + "&return_url=" + thisPage
 		}
@@ -702,7 +705,7 @@
 				trelloClient.id = "clientScript"
 				trelloClient.onload = function () {
 					// Run when loaded
-					console.log("Trello.authorize")
+					debug("Trello.authorize")
 					window.Trello.authorize(opts)
 				};
 				trelloClient.src = "https://trello.com/1/client.js?key=" + getAPIKey();
@@ -711,14 +714,32 @@
 			}
 		}
 
+		let isVisualDebug = false
+		let debug = (s) => {
+			if(isVisualDebug) {
+				let data = document.getElementById("visualDebug").innerHTML + "\n"
+				document.getElementById("visualDebug").innerHTML = safe(data + s)
+			} else {
+				console.log(s)
+			}
+		}
+
 		$( document ).ready(function() {
 			console.log("ready!");
+
+			if(localStorage.getItem("debug") == "true") {
+				isVisualDebug = true
+				$("#visualDebug").toggleClass("d-none", false)
+				debug("Visual debug")
+			} else {
+				debug("Hidden debug")
+			}
 
 			$('#settingsModal').on('shown.bs.modal', function (e) {
 				document.getElementById("apiKey").value = getAPIKey()
 			})
 			$('#settingsModal').on('hidden.bs.modal', function (e) {
-				console.log("save settings")
+				debug("save settings")
 				saveAPIKey(document.getElementById("apiKey").value)
 
 				initTrelloAndAuthenticate()
@@ -728,8 +749,9 @@
 			let url_string = window.location.href; 
     		let url = new URL(url_string);
     		let token = safe(url.hash).replace("#","")
+    		debug("token=" + token.substring(0,5))
     		if(token != "") {
-    			console.log("Authentication via callback")
+    			debug("Authentication via callback")
     			setToken(token)
     		} else {
     			console.log("Problem with authentication")
