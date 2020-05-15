@@ -22,13 +22,6 @@
 		.purple-label { background-color: #c377e0; color: #fff;}
 		.blue-label { background-color: #0079bf; color: #fff;}
 		.sky-label { background-color: #0098b7; color: #fff;}
-		/*.green-label { border-left:.5rem solid #61bd4f; }
-		.yellow-label { border-left:.5rem solid #f2d600; }
-		.orange-label { border-left:.5rem solid #cd8313; }
-		.red-label { border-left:.5rem solid #eb5a46; }
-		.purple-label { border-left:.5rem solid #c377e0; }
-		.blue-label { border-left:.5rem solid #0079bf; }
-		.sky-label { border-left:.5rem solid #0098b7; }*/
 	</style>
 </head>
 <body>
@@ -587,6 +580,9 @@
 		let getToken = () => {
 			return localStorage.getItem("trello_token")
 		}
+		let setToken = (token) => {
+			return localStorage.setItem("trello_token", token)
+		}
 		let deleteToken = () => {
 			localStorage.removeItem("trello_token")
 		}
@@ -599,7 +595,6 @@
 
 		let renewHTML = '<div class="alert alert-danger" role="alert">\
 					 Tillåtelse att läsa data från Trello saknas eller har löpt ut. Förnya genom att klicka på följande <a href="#" onclick="renewAccess();return false;">länk</a>. Mer info på <a href="https://trello.com/app-key" target="_tab">https://trello.com/app-key<a>\
-					 <p>OBS! Jobbar på att få detta att fungera enkelt... Ett <a href="https://api.trello.com/1/members/me?key=' + getAPIKey() + '&token=' + getToken() + '">test</a> för detta.</p>\
 					</div>'
 
 		// Display Start view
@@ -650,12 +645,18 @@
 		}
 
 		let authenticationSuccess = () => {
-			console.log('Successful authentication');
+			let token = Trello.token();
+			console.log('Successful authentication: ' + token);
+			setToken(token)
+
 			state.loadAndShowState()
 		};
 		let authenticationFailure = () => {
 	 		console.log('Failed to authenticate');
 		};
+
+
+		// https://stackoverflow.com/questions/17178907/how-to-get-a-permanent-user-token-for-writes-using-the-trello-api
 
 		// https://developer.atlassian.com/cloud/trello/guides/rest-api/api-introduction/
 		// https://developer.atlassian.com/cloud/trello/guides/client-js/client-js-reference/
@@ -669,7 +670,7 @@
 			interactive: true,
 			persist: true,
 			scope: { read: true, write: false, account: false },
-			expiration: "1day",
+			expiration: "30days",
 			success: authenticationSuccess,
 			error: authenticationFailure
 		}
@@ -679,17 +680,26 @@
 			interactive: false,
 			persist: true,
 			scope: { read: true, write: false, account: false },
-			expiration: "1day",
+			expiration: "30days",
 			success: authenticationSuccess,
 			error: authenticationFailure
 		}
 
 		// Renew access to Trello
-		let renewAccess = () => {
+		let renewAccessOld = () => {
 			console.log("renewAccess")
 			deleteToken()
 			let result = window.Trello.authorize(renewOpts);
 			console.log(result)
+		}
+
+		// https://developer.atlassian.com/cloud/trello/guides/rest-api/authorization/
+		// https://trello.com/1/authorize?expiration=1day&name=MyPersonalToken&scope=read&response_type=token&key={YourAPIKey}
+		let renewAccess = () => {
+			let thisPage = safe(window.location.href)
+			//console.log(thisPage)
+			let name = (thisPage.includes("localhost") ? "Sjövalla+FK+Orientering+Dev":"Sjövalla+FK+Orientering")
+			window.location.href = "https://trello.com/1/authorize?expiration=30days&name=" + name + "&scope=read&response_type=token&key=" + getAPIKey() + "&return_url=" + thisPage
 		}
 
 
@@ -725,6 +735,17 @@
 
 				initTrelloAndAuthenticate()
 			})
+
+			// http://localhost:8000/#token=...
+			let url_string = window.location.href; 
+    		let url = new URL(url_string);
+    		let token = safe(url.hash).replace("#","")
+    		if(token != "") {
+    			console.log("Authentication via callback")
+    			setToken(token)
+    		} else {
+    			console.log("Problem with authentication")
+    		}
 
 			let apiKey = getAPIKey()
 			if(apiKey == null) {
