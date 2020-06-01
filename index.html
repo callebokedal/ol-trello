@@ -46,6 +46,14 @@
 				<input type="checkbox" class="custom-control-input" id="settingHideRoles">
 				<label class="custom-control-label" for="settingHideRoles" onclick="reloadLists();">Dölj roller</label>
 			</div>
+			<div class="custom-control custom-switch m-2">
+				<input type="checkbox" class="custom-control-input" id="settingHideTasks">
+				<label class="custom-control-label" for="settingHideTasks" onclick="reloadLists();">Dölj uppgifter</label>
+			</div>
+			<div class="custom-control custom-switch m-2">
+				<input type="checkbox" class="custom-control-input" id="settingHideContactDetails">
+				<label class="custom-control-label" for="settingHideContactDetails" onclick="reloadLists();">Dölj kontaktuppgifter</label>
+			</div>
 
 			<div class="btn-group btn-group-sm m-2" role="group" aria-label="Sidfunktioner">
 				<button type="button" class="btn btn-secondary" onclick="showAllLists();">Visa alla</button>
@@ -424,26 +432,24 @@
 			let lastListId = ""
 			let hideList = false // Some lists we do want to hide
 			let settingHideRoles = document.getElementById("settingHideRoles").checked
+			let settingHideTasks = document.getElementById("settingHideTasks").checked
+			let settingHideContactDetails = document.getElementById("settingHideContactDetails").checked
 			cards.forEach((card, idx) => {
 
 				let labelMarkers = ""
 				let isRole = false
+				let isTask = false
+				let isContactDetails = false
 				card.idLabels.forEach((labelId, idx) => {
 					let l = getLabelById(labelId)
 					let name = (l.name ? l.name:"&nbsp;")
 					isRole = name.includes("Roll")
-					//console.log("label: " + name)
-
+					isTask = name.includes("Uppgift")
+					isContactDetails = name.includes("Kontaktuppgifter")
 					if (name.includes("Dölj i export")) {
 						// Special case - hide wholw list
-						//removeListById("list"+card.idList)
 						hideList = true
 					}
-					//hideList = hideList || name.includes("Dölj i export");
-					//if(name.includes("Roll")) {
-					//	isRole = true
-						//name = "test"
-					//}
 					name = name.includes("Representant i") ? boardMemberIcon + name  : name
 					labelMarkers += '<span class="ml-2 mb-1 badge badge-pill ' + l.color + "-label" + '">' + name + '</span>'
 				});	
@@ -451,7 +457,7 @@
 
 				// document.getElementById("settingsLargeTable").checked
 
-				if(!(/*hideList ||*/ (settingHideRoles && isRole))) {
+				if(!((settingHideRoles && isRole) || (settingHideTasks && isTask) || (settingHideContactDetails && isContactDetails))) {
 
 					html = '<div class="card mb-2" id="' + card.id + '">\
 						<ul class="list-group list-group-flush">'
