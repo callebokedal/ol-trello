@@ -22,6 +22,9 @@
 		.purple-label { background-color: #c377e0; color: #fff;}
 		.blue-label { background-color: #0079bf; color: #fff;}
 		.sky-label { background-color: #0098b7; color: #fff;}
+		#toolbar-tmp {
+			background-color: #454545;
+		}
 	</style>
 </head>
 <body>
@@ -32,11 +35,19 @@
 			<img class="mr-2 d-inline-block align-top" src="lib/img/sjovalla_fk_logo_48x48.png" width=48 height=48>
 			<h1 class="font-weight-bold d-none d-md-block d-lg-block d-xl-block" style="color: #3f9049;font-family: Verdana;font-size: 1.6em;">Sjövalla FK Orientering</h1>
 			<a name="top" onclick="window.scrollTo(0, 0);" class="btn btn-sm btn-link align-self-center ml-auto mr-2 d-print-none" style="height: 2.5em;">Till toppen</a>
-			<button type="button" class="btn btn-sm btn-primary align-self-center d-print-none" data-toggle="modal" style="height: 2.5em;" data-target="#settingsModal">Inställningar</button>
+			<button type="button" class="btn btn-sm btn-primary align-self-center d-print-none mr-2" data-toggle="modal" style="height: 2.5em;" data-target="#settingsModal">Avancerat</button>
+			<!-- <button type="button" class="btn btn-sm btn-primary align-self-center d-print-none" style="height: 2.5em;">Inställningar</button> -->
 		</nav>
 
-		<div id="toolbar" class="mt-2 mb-2 d-print-none text-right">
-			<div class="btn-group btn-group-sm" role="group" aria-label="Sidfunktioner">
+		<div id="toolbar" class="d-print-none my-2text-right d-flex flex-row-reverse align-items-center">
+
+			
+			<div class="custom-control custom-switch m-2">
+				<input type="checkbox" class="custom-control-input" id="settingHideRoles">
+				<label class="custom-control-label" for="settingHideRoles" onclick="reloadLists();">Dölj roller</label>
+			</div>
+
+			<div class="btn-group btn-group-sm m-2" role="group" aria-label="Sidfunktioner">
 				<button type="button" class="btn btn-secondary" onclick="showAllLists();">Visa alla</button>
 				<button type="button" class="btn btn-secondary" onclick="hideAllLists();">Dölj alla</button>
 
@@ -50,6 +61,8 @@
 					</div>
 				</div>-->
 			</div>
+
+			<div>Visningsalternativ:</div>
 		</div>
 
 		<textarea id="visualDebug" class="w-100 d-none"></textarea>
@@ -394,6 +407,13 @@
 			document.getElementById("orgContainer").innerHTML = html
 		}
 
+		// Utility function to hide list by id
+		let removeListById = (listId) => {
+			//document.getElementById(listId)
+			console.log("to hide: " + listId)
+			$('#'+listId).parent().remove()
+		}
+
 		let getLabelById = (labelId) => {
 			return boardData.labels.find(label => label.id == labelId)
 		}
@@ -402,47 +422,70 @@
 			// Ref: https://getbootstrap.com/docs/4.4/components/card/
 			let html = ''
 			let lastListId = ""
+			let hideList = false // Some lists we do want to hide
+			let settingHideRoles = document.getElementById("settingHideRoles").checked
 			cards.forEach((card, idx) => {
 
 				let labelMarkers = ""
+				let isRole = false
 				card.idLabels.forEach((labelId, idx) => {
 					let l = getLabelById(labelId)
-					//console.log("label: " + l.name)
-					//console.log(l)
 					let name = (l.name ? l.name:"&nbsp;")
+					isRole = name.includes("Roll")
+					//console.log("label: " + name)
+
+					if (name.includes("Dölj i export")) {
+						// Special case - hide wholw list
+						//removeListById("list"+card.idList)
+						hideList = true
+					}
+					//hideList = hideList || name.includes("Dölj i export");
+					//if(name.includes("Roll")) {
+					//	isRole = true
+						//name = "test"
+					//}
 					name = name.includes("Representant i") ? boardMemberIcon + name  : name
-					// 
-					labelMarkers += '<span class="ml-2 badge badge-pill ' + l.color + "-label" + '">' + name + '</span>'
+					labelMarkers += '<span class="ml-2 mb-1 badge badge-pill ' + l.color + "-label" + '">' + name + '</span>'
 				});	
-				//console.log(labelMarkers)
+				//hideList = true
 
-				html = '<div class="card mb-2" id="' + card.id + '">\
-					<ul class="list-group list-group-flush">'
+				// document.getElementById("settingsLargeTable").checked
 
-				if(lastListId != card.idList && (card.idBoard == sfkOrgBoardId)) {
-					// Assume first card is for objective
-					html += '<li class="list-group-item px-2 p-1 list-group-item-primary">'
-				} else {
-					html += '<li class="list-group-item px-2 p-1">'
-				}
-				html += (card.name.toLowerCase().includes("vakant") ? vakantIcon : "")
-				html += safe(card.name.replace("beskrivs i detta kort","")) + labelMarkers
-				if(card.desc) {
-					html += '<div class="p-1" style="background-color: #eee;"><h6>' + descriptionIcon + 'Beskrivning</h6>' + safe(marked(card.desc)) + '</div>'
-				}
-				if(card.idChecklists.length > 0) {
-					card.idChecklists.forEach((id) => {
-						html += '<p>' + getHTMLForChecklist(id) + '</p>'
-					});
-				}
-				html += '<p class="float-right d-none d-sm-block text-muted mb-0 updatedate">Uppdaterad ' + safe(moment(card.dateLastActivity).format('YYYY-MM-DD HH:mm')) + '</p></li></ul>\
-					</div>'
-					//<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + safe(moment(card.dateLastActivity).format('YYYY-MM-DD HH:mm')) + '</p>'
-					//<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + moment(card.dateLastActivity).fromNow() + '</p>'
+				if(!(/*hideList ||*/ (settingHideRoles && isRole))) {
 
-				lastListId = card.idList
-				document.getElementById("list" + card.idList).insertAdjacentHTML('beforeend', html);
+					html = '<div class="card mb-2" id="' + card.id + '">\
+						<ul class="list-group list-group-flush">'
+
+					if(lastListId != card.idList && (card.idBoard == sfkOrgBoardId)) {
+						// Assume first card is for objective
+						html += '<li class="list-group-item px-2 p-1 list-group-item-secondary">'
+					} else {
+						html += '<li class="list-group-item px-2 p-1">'
+					}
+					html += (card.name.toLowerCase().includes("vakant") ? vakantIcon : "")
+					html += safe(card.name.replace("beskrivs i detta kort","")) + labelMarkers
+					if(card.desc) {
+						html += '<div class="p-1" style="background-color: #eee;"><h6>' + descriptionIcon + 'Beskrivning</h6>' + safe(marked(card.desc)) + '</div>'
+					}
+					if(card.idChecklists.length > 0) {
+						card.idChecklists.forEach((id) => {
+							html += '<p>' + getHTMLForChecklist(id) + '</p>'
+						});
+					}
+					html += '<p class="float-right d-none d-sm-block text-muted mb-0 updatedate">Uppdaterad ' + safe(moment(card.dateLastActivity).format('YYYY-MM-DD HH:mm')) + '</p></li></ul>\
+						</div>'
+						//<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + safe(moment(card.dateLastActivity).format('YYYY-MM-DD HH:mm')) + '</p>'
+						//<p class="d-flex justify-content-end mb-1 text-muted updatedate">Uppdaterad ' + moment(card.dateLastActivity).fromNow() + '</p>'
+
+					lastListId = card.idList
+					if(!hideList) {
+						document.getElementById("list" + card.idList).insertAdjacentHTML('beforeend', html);	
+					}
+				}
 			});
+			if(hideList) {
+				removeListById("list" + lastListId)
+			}
 		}
 
 		// Page functions
@@ -460,10 +503,19 @@
 				$('#list'+item.id).show()
 			})
 		}
+		let reloadLists = () => {
+			console.log("reload")
+			state.loadAndShowState()
+		}
 
-		const vakantIcon = '<svg class="bi bi-exclamation-triangle-fill mr-2 text-warning" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
+		const vakantIconOld = '<svg class="bi bi-exclamation-triangle-fill mr-2 text-warning" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
 				<path fill-rule="evenodd" d="M8.982 1.566a1.13 1.13 0 00-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5a.905.905 0 00-.9.995l.35 3.507a.552.552 0 001.1 0l.35-3.507A.905.905 0 008 5zm.002 6a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/>\
 			</svg>'
+
+		const vakantIcon = '<svg class="bi bi-question-circle-fill mr-2 text-secondary" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
+			  <path fill-rule="evenodd" d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.57 6.033H5.25C5.22 4.147 6.68 3.5 8.006 3.5c1.397 0 2.673.73 2.673 2.24 0 1.08-.635 1.594-1.244 2.057-.737.559-1.01.768-1.01 1.486v.355H7.117l-.007-.463c-.038-.927.495-1.498 1.168-1.987.59-.444.965-.736.965-1.371 0-.825-.628-1.168-1.314-1.168-.901 0-1.358.603-1.358 1.384zm1.251 6.443c-.584 0-1.009-.394-1.009-.927 0-.552.425-.94 1.01-.94.609 0 1.028.388 1.028.94 0 .533-.42.927-1.029.927z"/>\
+			</svg>'
+
 		const descriptionIcon = '<svg class="bi bi-card-text mr-2" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">\
 				<path fill-rule="evenodd" d="M14.5 3h-13a.5.5 0 00-.5.5v9a.5.5 0 00.5.5h13a.5.5 0 00.5-.5v-9a.5.5 0 00-.5-.5zm-13-1A1.5 1.5 0 000 3.5v9A1.5 1.5 0 001.5 14h13a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0014.5 2h-13z" clip-rule="evenodd"/>\
 				<path fill-rule="evenodd" d="M3 5.5a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5zM3 8a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9A.5.5 0 013 8zm0 2.5a.5.5 0 01.5-.5h6a.5.5 0 010 1h-6a.5.5 0 01-.5-.5z" clip-rule="evenodd"/>\
@@ -521,6 +573,7 @@
 				$("#overviewContainer").hide();
 				_loadAndRenderStart()
 			},
+			// View specific board
 			viewBoard: (boardId) => {
 				state._updateState(VIEWS.VIEWBOARD, boardId);
 				$("#startContainer").hide();
@@ -529,6 +582,7 @@
 				$("#overviewContainer").hide();
 				_loadAndRenderBoard(boardId)
 			},
+			// Overview of selectable boards
 			viewOverview: (boardId) => {
 				state._updateState(VIEWS.VIEWOVERVIEW, boardId);
 				$("#startContainer").hide();
