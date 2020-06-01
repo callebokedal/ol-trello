@@ -443,7 +443,7 @@
 				card.idLabels.forEach((labelId, idx) => {
 					let l = getLabelById(labelId)
 					let name = (l.name ? l.name:"&nbsp;")
-					isRole = name.includes("Roll")
+					isRole = name.includes("Roll") || name.includes("Representant")
 					isTask = name.includes("Uppgift")
 					isContactDetails = name.includes("Kontaktuppgifter")
 					if (name.includes("Dölj i export")) {
@@ -456,6 +456,8 @@
 				//hideList = true
 
 				// document.getElementById("settingsLargeTable").checked
+
+				let doHide = (settingHideRoles && isRole) || (settingHideTasks && isTask) || (settingHideContactDetails && isContactDetails)
 
 				if(!((settingHideRoles && isRole) || (settingHideTasks && isTask) || (settingHideContactDetails && isContactDetails))) {
 
