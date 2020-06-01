@@ -22,9 +22,7 @@
 		.purple-label { background-color: #c377e0; color: #fff;}
 		.blue-label { background-color: #0079bf; color: #fff;}
 		.sky-label { background-color: #0098b7; color: #fff;}
-		#toolbar-tmp {
-			background-color: #454545;
-		}
+		.lime-label { background-color: #3f9049; color: #fff;}
 	</style>
 </head>
 <body>
@@ -443,7 +441,8 @@
 				card.idLabels.forEach((labelId, idx) => {
 					let l = getLabelById(labelId)
 					let name = (l.name ? l.name:"&nbsp;")
-					isRole = name.includes("Roll") || name.includes("Representant")
+					//isRole = name.includes("Roll") || (name.includes("Representant") && !name.includes("Representant i Sektionsstyrelsen"))
+					isRole = name.includes("Roll") 
 					isTask = name.includes("Uppgift")
 					isContactDetails = name.includes("Kontaktuppgifter")
 					if (name.includes("Dölj i export")) {
