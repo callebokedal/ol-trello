@@ -45,6 +45,10 @@
 				<label class="custom-control-label" for="settingHideRoles" onclick="reloadLists();">Dölj roller</label>
 			</div>
 			<div class="custom-control custom-switch m-2">
+				<input type="checkbox" class="custom-control-input" id="settingHideReprRoles">
+				<label class="custom-control-label" for="settingHideReprRoles" onclick="reloadLists();">Dölj repr. roller</label>
+			</div>
+			<div class="custom-control custom-switch m-2">
 				<input type="checkbox" class="custom-control-input" id="settingHideTasks">
 				<label class="custom-control-label" for="settingHideTasks" onclick="reloadLists();">Dölj uppgifter</label>
 			</div>
@@ -56,16 +60,6 @@
 			<div class="btn-group btn-group-sm m-2" role="group" aria-label="Sidfunktioner">
 				<button type="button" class="btn btn-secondary" onclick="showAllLists();">Visa alla</button>
 				<button type="button" class="btn btn-secondary" onclick="hideAllLists();">Dölj alla</button>
-
-				<!--<div class="btn-group btn-group-sm" role="group">
-					<button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						Scrolla till
-					</button>
-					<div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-						<a class="dropdown-item" href="#">Dropdown link</a>
-						<a class="dropdown-item" href="#">Dropdown link</a>
-					</div>
-				</div>-->
 			</div>
 
 			<div>Visningsalternativ:</div>
@@ -430,12 +424,14 @@
 			let lastListId = ""
 			let hideList = false // Some lists we do want to hide
 			let settingHideRoles = document.getElementById("settingHideRoles").checked
+			let settingHideReprRoles = document.getElementById("settingHideReprRoles").checked
 			let settingHideTasks = document.getElementById("settingHideTasks").checked
 			let settingHideContactDetails = document.getElementById("settingHideContactDetails").checked
 			cards.forEach((card, idx) => {
 
 				let labelMarkers = ""
 				let isRole = false
+				let isReprRole = false
 				let isTask = false
 				let isContactDetails = false
 				card.idLabels.forEach((labelId, idx) => {
@@ -443,6 +439,7 @@
 					let name = (l.name ? l.name:"&nbsp;")
 					//isRole = name.includes("Roll") || (name.includes("Representant") && !name.includes("Representant i Sektionsstyrelsen"))
 					isRole = name.includes("Roll") 
+					isReprRole = name.includes("Representant") && !name.includes("Representant i Sektionsstyrelsen")
 					isTask = name.includes("Uppgift")
 					isContactDetails = name.includes("Kontaktuppgifter")
 					if (name.includes("Dölj i export")) {
@@ -451,14 +448,13 @@
 					}
 					name = name.includes("Representant i") ? boardMemberIcon + name  : name
 					labelMarkers += '<span class="ml-2 mb-1 badge badge-pill ' + l.color + "-label" + '">' + name + '</span>'
-				});	
-				//hideList = true
+				});
 
 				// document.getElementById("settingsLargeTable").checked
 
-				let doHide = (settingHideRoles && isRole) || (settingHideTasks && isTask) || (settingHideContactDetails && isContactDetails)
+				//let doHide = (settingHideRoles && isRole) || (settingHideTasks && isTask) || (settingHideContactDetails && isContactDetails) || (settingHideReprRoles && isReprRole)
 
-				if(!((settingHideRoles && isRole) || (settingHideTasks && isTask) || (settingHideContactDetails && isContactDetails))) {
+				if(!((settingHideRoles && isRole) || (settingHideReprRoles && isReprRole) || (settingHideTasks && isTask) || (settingHideContactDetails && isContactDetails))) {
 
 					html = '<div class="card mb-2" id="card' + card.id + '">\
 						<ul class="list-group list-group-flush">'
@@ -810,7 +806,7 @@
 			let url_string = window.location.href; 
     		let url = new URL(url_string);
     		let token = safe(url.hash).replace("#token=","")
-    		debug("token=" + token.substring(0,5))
+    		debug("token=" + token.substring(0,4) + "...")
     		if(token != "") {
     			debug("Authentication via callback")
     			setToken(token)
