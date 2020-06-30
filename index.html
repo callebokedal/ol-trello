@@ -438,10 +438,10 @@
 					let l = getLabelById(labelId)
 					let name = (l.name ? l.name:"&nbsp;")
 					//isRole = name.includes("Roll") || (name.includes("Representant") && !name.includes("Representant i Sektionsstyrelsen"))
-					isRole = name.includes("Roll") 
-					isReprRole = name.includes("Representant") && !name.includes("Representant i Sektionsstyrelsen")
-					isTask = name.includes("Uppgift")
-					isContactDetails = name.includes("Kontaktuppgifter")
+					isRole = isRole || name.includes("Roll") 
+					isReprRole = isReprRole || name.includes("Representant") && !name.includes("Representant i Sektionsstyrelsen")
+					isTask = isTask || name.includes("Uppgift")
+					isContactDetails = isContactDetails || name.includes("Kontaktuppgifter")
 					if (name.includes("Dölj i export")) {
 						// Special case - hide wholw list
 						hideList = true
