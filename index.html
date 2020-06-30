@@ -422,13 +422,15 @@
 			// Ref: https://getbootstrap.com/docs/4.4/components/card/
 			let html = ''
 			let lastListId = ""
+			let hideList = false // Some lists we do want to hide
 			let settingHideRoles = document.getElementById("settingHideRoles").checked
 			let settingHideReprRoles = document.getElementById("settingHideReprRoles").checked
 			let settingHideTasks = document.getElementById("settingHideTasks").checked
 			let settingHideContactDetails = document.getElementById("settingHideContactDetails").checked
 			cards.forEach((card, idx) => {
 
-				let hideList = false // Some lists we do want to hide
+				hideList = false
+
 				let labelMarkers = ""
 				let isRole = false
 				let isReprRole = false
@@ -487,10 +489,11 @@
 					}
 				}
 
-				if(hideList) {
-					removeListById("list" + lastListId)
-				}
 			});
+
+			if(hideList) {
+				removeListById("list" + lastListId)
+			}
 		}
 
 		// Page functions
