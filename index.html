@@ -422,7 +422,6 @@
 			// Ref: https://getbootstrap.com/docs/4.4/components/card/
 			let html = ''
 			let lastListId = ""
-			let hideList = false // Some lists we do want to hide
 			let settingHideRoles = document.getElementById("settingHideRoles").checked
 			let settingHideReprRoles = document.getElementById("settingHideReprRoles").checked
 			let settingHideTasks = document.getElementById("settingHideTasks").checked
@@ -434,6 +433,7 @@
 				let isReprRole = false
 				let isTask = false
 				let isContactDetails = false
+				let hideList = false // Some lists we do want to hide
 				card.idLabels.forEach((labelId, idx) => {
 					let l = getLabelById(labelId)
 					let name = (l.name ? l.name:"&nbsp;")
@@ -444,7 +444,7 @@
 					isContactDetails = isContactDetails || name.includes("Kontaktuppgifter")
 					if (name.includes("Dölj i export")) {
 						// Special case - hide wholw list
-						hideList = true
+						hideList = hideList || true
 					}
 					name = name.includes("Representant i") ? boardMemberIcon + name  : name
 					labelMarkers += '<span class="ml-2 mb-1 badge badge-pill ' + l.color + "-label" + '">' + name + '</span>'
