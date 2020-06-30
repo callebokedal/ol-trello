@@ -428,12 +428,13 @@
 			let settingHideContactDetails = document.getElementById("settingHideContactDetails").checked
 			cards.forEach((card, idx) => {
 
+				let hideList = false // Some lists we do want to hide
 				let labelMarkers = ""
 				let isRole = false
 				let isReprRole = false
 				let isTask = false
 				let isContactDetails = false
-				let hideList = false // Some lists we do want to hide
+				
 				card.idLabels.forEach((labelId, idx) => {
 					let l = getLabelById(labelId)
 					let name = (l.name ? l.name:"&nbsp;")
@@ -485,10 +486,11 @@
 						document.getElementById("list" + card.idList).insertAdjacentHTML('beforeend', html);	
 					}
 				}
+
+				if(hideList) {
+					removeListById("list" + lastListId)
+				}
 			});
-			if(hideList) {
-				removeListById("list" + lastListId)
-			}
 		}
 
 		// Page functions
